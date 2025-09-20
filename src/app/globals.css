@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #0a0a0a;
+  --foreground: #ededed;
 }
 
 @theme inline {
@@ -12,15 +12,111 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Dark mode specific styles */
+.dark {
+  --background: #0a0a0a;
+  --foreground: #ededed;
+}
+
+/* Light mode specific styles */
+.light {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+/* Form inputs in dark mode */
+input, select, textarea {
+  background-color: #1f1f1f;
+  color: #ededed;
+  border-color: #404040;
+}
+
+input:focus, select:focus, textarea:focus {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 1px #6366f1;
+}
+
+/* Card backgrounds */
+.bg-white {
+  background-color: #1f1f1f;
+  color: #ededed;
+}
+
+/* Button styles */
+.bg-indigo-600 {
+  background-color: #4f46e5;
+}
+
+.bg-indigo-600:hover {
+  background-color: #4338ca;
+}
+
+.bg-gray-200 {
+  background-color: #2d2d2d;
+  color: #ededed;
+}
+
+.bg-gray-200:hover {
+  background-color: #3d3d3d;
+}
+
+/* Table styles */
+.divide-gray-200 > :not([hidden]) ~ :not([hidden]) {
+  border-color: #404040;
+}
+
+.border-gray-200 {
+  border-color: #404040;
+}
+
+.border-gray-300 {
+  border-color: #404040;
+}
+
+/* Text colors */
+.text-gray-600 {
+  color: #a3a3a3;
+}
+
+.text-gray-700 {
+  color: #d4d4d4;
+}
+
+.text-gray-900 {
+  color: #f5f5f5;
+}
+
+.text-gray-500 {
+  color: #a3a3a3;
+}
+
+/* Status badges */
+.bg-red-100 {
+  background-color: #7f1d1d;
+}
+
+.bg-yellow-100 {
+  background-color: #713f12;
+}
+
+.bg-green-100 {
+  background-color: #14532d;
+}
+
+.text-red-800 {
+  color: #fecaca;
+}
+
+.text-yellow-800 {
+  color: #fde68a;
+}
+
+.text-green-800 {
+  color: #bbf7d0;
 }
