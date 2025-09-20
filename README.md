@@ -1,153 +1,143 @@
 # Inventory Restock Predictor
 
-A Next.js application that predicts when inventory will run out based on past sales data and sends restock reminders.
-
-## Features
-
-- Predicts stockout dates based on current inventory and sales data
-- Calculates optimal reorder dates considering supplier lead times
-- Recommends order quantities based on demand forecasts
-- Provides visual indicators for urgent vs. normal restock situations
-- Responsive design that works on desktop and mobile devices
-- Dashboard for monitoring all products at a glance
-- Settings for customizing notification preferences
-- Comprehensive documentation and API reference
-
-## Tech Stack
-
-- **Frontend**: Next.js 14 with App Router, React, TypeScript
-- **Styling**: Tailwind CSS
-- **State Management**: React Context API and useState hooks
-- **Testing**: Jest (planned)
-- **Deployment**: Vercel (or any Node.js compatible platform)
-
-## Getting Started
-
-### Prerequisites
-
-- Node.js 18.x or later
-- npm or yarn
-
-### Installation
-
-1. Clone the repository:
-   ```bash
-   git clone <repository-url>
-   ```
-
-2. Navigate to the project directory:
-   ```bash
-   cd inventory-restock-predictor
-   ```
-
-3. Install dependencies:
-   ```bash
-   npm install
-   ```
-
-### Development
-
-To run the development server:
-
-```bash
-npm run dev
-```
-
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the application.
-
-### Building for Production
-
-To create a production build:
-
-```bash
-npm run build
-```
-
-To run the production build locally:
-
-```bash
-npm start
-```
-
-### Testing
-
-To run tests:
-
-```bash
-npm test
-```
+A complete inventory management system with predictive analytics using Facebook Prophet for demand forecasting.
 
 ## Project Structure
 
 ```
-src/
-├── app/                     # Next.js app directory
-│   ├── components/          # Reusable UI components
-│   ├── services/            # Business logic and data services
-│   ├── __tests__/           # Test files
-│   ├── about/               # About page
-│   ├── api-docs/            # API documentation
-│   ├── architecture/        # Technical architecture documentation
-│   ├── dashboard/           # Dashboard page
-│   ├── documentation/       # User documentation
-│   ├── settings/            # Settings page
-│   ├── actions.ts           # Server actions
-│   ├── layout.tsx           # Root layout
-│   └── page.tsx             # Home page
-├── public/                  # Static assets
-└── styles/                  # Global styles
+agayma/
+├── src/                 # Next.js frontend application
+├── backend/             # Flask backend with Prophet model
+├── public/              # Static assets
+├── .env.local          # Environment variables
+└── README.md           # This file
 ```
 
-## How It Works
+## Prerequisites
 
-The application uses a simple but effective algorithm to predict restocking needs:
+- Node.js (v14 or higher)
+- Python (v3.7 or higher)
+- pip (Python package manager)
 
-1. **Days Until Stockout** = (Current Stock - Safety Stock) / Average Daily Sales
-2. **Recommended Restock Date** = Current Date + (Days Until Stockout - Supplier Lead Time)
-3. **Recommended Order Quantity** = Average Daily Sales × (Lead Time + Buffer Days)
+## Setup Instructions
 
-The system also considers safety stock levels to prevent unexpected stockouts due to demand fluctuations.
+### 1. Frontend Setup (Next.js)
 
-## Customization
+1. Install dependencies:
+```bash
+npm install
+```
 
-You can customize the following parameters in the calculation:
+2. Start the development server:
+```bash
+npm run dev
+```
 
-- **Safety Stock**: Minimum inventory level to maintain
-- **Buffer Days**: Additional days added to the recommended order quantity calculation
-- **Lead Time**: Time it takes for a supplier to fulfill an order
+The frontend will be available at http://localhost:3000
+
+### 2. Backend Setup (Flask with Prophet)
+
+1. Navigate to the backend directory:
+```bash
+cd backend
+```
+
+2. On Windows, run the startup script:
+```bash
+start.bat
+```
+
+3. On macOS/Linux, run:
+```bash
+chmod +x start.sh
+./start.sh
+```
+
+The backend API will be available at http://localhost:5000
+
+### 3. Environment Configuration
+
+Make sure the `.env.local` file in the root directory has the correct API URL:
+```
+MODEL_API_URL=http://localhost:5000/api
+```
+
+## Usage
+
+1. Start both the frontend and backend servers
+2. Navigate to http://localhost:3000 in your browser
+3. Go to the "Inventory" section
+4. Upload your historical sales data and current inventory CSV files
+5. View restock predictions and alerts in the dashboard
 
 ## API Endpoints
 
-In a full implementation, the system would expose the following API endpoints:
+### Backend API (Flask)
 
-- `GET /api/products` - Retrieve all products
-- `POST /api/products` - Add a new product
-- `GET /api/products/{id}` - Retrieve a specific product
-- `PUT /api/products/{id}` - Update a product
-- `DELETE /api/products/{id}` - Delete a product
-- `GET /api/predictions/{id}` - Get restock prediction for a product
-- `POST /api/notifications/restock` - Send restock alerts
+- `GET /api/health` - Health check endpoint
+- `POST /api/predict` - Upload CSV files and generate predictions
+- `GET /api/alerts` - Get restock alerts
+- `GET /api/inventory` - Get inventory data
 
-## Deployment
+## Data Format
 
-The easiest way to deploy this application is with [Vercel](https://vercel.com), which provides seamless integration with Next.js.
+### Historical Sales Data CSV
+Required columns:
+- date (YYYY-MM-DD format)
+- product_id
+- product_name
+- quantity_sold
+- region
+- season (Summer, Monsoon, Autumn, Winter)
+- month
+- holiday (Yes/No)
 
-For other deployment options, you can use any Node.js hosting platform that supports Next.js applications.
+Example:
+```csv
+date,product_id,product_name,quantity_sold,region,season,month,holiday
+2023-01-15,1001,Wireless Headphones,5,North,Summer,January,No
+```
 
-## Contributing
+### Current Inventory Data CSV
+Required columns:
+- product_id
+- product_name
+- current_stock
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+Example:
+```csv
+product_id,product_name,current_stock
+1001,Wireless Headphones,45
+```
 
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+## Troubleshooting
 
-## License
+### Connection Refused Error
+If you see "Failed to load resource: net::ERR_CONNECTION_REFUSED", it means the backend server is not running. Make sure to:
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+1. Run the backend server using `start.bat` (Windows) or `start.sh` (macOS/Linux)
+2. Check that the backend is running on port 5000
+3. Verify the MODEL_API_URL in `.env.local` points to the correct address
 
-## Contact
+### Prophet Installation Issues
+If you encounter issues installing Prophet:
 
-For questions or support, please open an issue on the GitHub repository.
+1. Make sure you have a C++ compiler installed
+2. On Windows, you might need to install Microsoft Visual C++ Build Tools
+3. On macOS, make sure you have Xcode command line tools
+4. On Linux, install build essentials: `sudo apt-get install build-essential`
+
+## Technologies Used
+
+- **Frontend**: Next.js, React, TypeScript, Tailwind CSS
+- **Backend**: Flask, Python
+- **Machine Learning**: Facebook Prophet
+- **Data Processing**: Pandas, NumPy
+
+## Features
+
+- Upload historical sales data and current inventory
+- Predict future stockout dates using Prophet time series forecasting
+- Generate restock alerts with suggested quantities
+- Dashboard with inventory overview and alerts
+- Responsive dark mode UI

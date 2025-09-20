@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { inventoryService, RestockAlert } from "@/app/services/inventoryService";
+import { SignedIn, SignedOut, SignInButton } from '@clerk/nextjs';
 
 interface Product {
   id: number;
@@ -22,6 +24,8 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [newDataAvailable, setNewDataAvailable] = useState(false);
+  const [alerts, setAlerts] = useState<RestockAlert[]>([]);
+  const [loadingAlerts, setLoadingAlerts] = useState(true);
 
   // Fetch real data from your model/API
   useEffect(() => {
@@ -124,6 +128,23 @@ export default function Dashboard() {
     fetchProducts();
   }, []);
 
+  // Fetch restock alerts
+  useEffect(() => {
+    const fetchAlerts = async () => {
+      try {
+        setLoadingAlerts(true);
+        const fetchedAlerts = await inventoryService.getRestockAlerts();
+        setAlerts(fetchedAlerts);
+      } catch (err) {
+        console.error("Failed to fetch alerts:", err);
+      } finally {
+        setLoadingAlerts(false);
+      }
+    };
+
+    fetchAlerts();
+  }, []);
+
   // Group products by status
   const urgentProducts = products.filter(product => product.status === "urgent");
   const warningProducts = products.filter(product => product.status === "warning");
@@ -133,15 +154,17 @@ export default function Dashboard() {
   const totalProducts = products.length;
   const urgentCount = urgentProducts.length;
   const warningCount = warningProducts.length;
+  const alertCount = alerts.length;
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-white mb-4">Inventory Dashboard</h1>
-        <p className="text-gray-300">
-          Monitor your inventory levels and restock predictions
-        </p>
-      </div>
+      <SignedIn>
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-white mb-4">Inventory Dashboard</h1>
+          <p className="text-gray-300">
+            Monitor your inventory levels and restock predictions
+          </p>
+        </div>
 
       {newDataAvailable && (
         <div className="mb-6 p-4 bg-green-900 border border-green-700 rounded-md">
@@ -168,7 +191,7 @@ export default function Dashboard() {
       )}
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
         <div className="bg-gray-800 shadow rounded-lg p-6">
           <div className="flex items-center">
             <div className="flex-shrink-0 bg-blue-900 rounded-md p-3">
@@ -210,7 +233,63 @@ export default function Dashboard() {
             </div>
           </div>
         </div>
+
+        <div className="bg-gray-800 shadow rounded-lg p-6">
+          <div className="flex items-center">
+            <div className="flex-shrink-0 bg-indigo-900 rounded-md p-3">
+              <svg className="h-6 w-6 text-indigo-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+              </svg>
+            </div>
+            <div className="ml-4">
+              <h3 className="text-sm font-medium text-gray-300">Restock Alerts</h3>
+              <p className="text-2xl font-semibold text-white">{alertCount}</p>
+            </div>
+          </div>
+        </div>
       </div>
+
+      {/* Restock Alerts Section */}
+      {alerts.length > 0 && (
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-semibold text-white">Restock Alerts</h2>
+            <Link 
+              href="/inventory" 
+              className="text-indigo-400 hover:text-indigo-300 text-sm font-medium"
+            >
+              View All
+            </Link>
+          </div>
+          
+          <div className="bg-red-900 border border-red-700 rounded-lg">
+            <div className="px-4 py-3 border-b border-red-700">
+              <h3 className="text-lg font-medium text-red-200 flex items-center">
+                <svg className="h-5 w-5 mr-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                </svg>
+                Immediate Action Required
+              </h3>
+            </div>
+            <div className="divide-y divide-red-700">
+              {alerts.slice(0, 3).map((alert, index) => (
+                <div key={index} className="px-4 py-3 flex justify-between items-center">
+                  <div>
+                    <h4 className="font-medium text-white">{alert.product_name}</h4>
+                    <p className="text-sm text-gray-300">Stock out predicted on {alert.stock_out_date}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-medium text-red-300">Restock: {alert.suggested_restock} units</p>
+                    <button className="mt-1 text-xs text-indigo-300 hover:text-indigo-200">
+                      Take Action
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Action Required Section */}
       {(urgentProducts.length > 0 || warningProducts.length > 0) && (
@@ -382,6 +461,18 @@ export default function Dashboard() {
           </Link>
         </div>
       </div>
+      </SignedIn>
+      <SignedOut>
+        <div className="text-center py-12">
+          <h2 className="text-2xl font-bold text-white mb-4">Access Denied</h2>
+          <p className="text-gray-300 mb-6">You need to be signed in to view the dashboard.</p>
+          <SignInButton>
+            <button className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+              Sign In
+            </button>
+          </SignInButton>
+        </div>
+      </SignedOut>
     </div>
   );
 }

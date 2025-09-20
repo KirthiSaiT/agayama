@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { predictRestock } from "./actions";
 import Link from "next/link";
+import { SignedIn, SignedOut } from '@clerk/nextjs';
 
 export default function Home() {
   // State for form inputs
@@ -54,29 +55,30 @@ export default function Home() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
-      {/* Hero Section */}
-      <div className="text-center mb-16">
-        <h1 className="text-4xl md:text-5xl font-extrabold text-white mb-6">
-          Inventory <span className="text-indigo-400">Restock Predictor</span>
-        </h1>
-        <p className="text-xl text-gray-300 max-w-3xl mx-auto mb-10">
-          Predict when your inventory will run out and automate restocking with our intelligent forecasting system.
-        </p>
-        <div className="flex flex-col sm:flex-row justify-center gap-4">
-          <Link 
-            href="/dashboard" 
-            className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-          >
-            View Dashboard
-          </Link>
-          <Link 
-            href="/documentation" 
-            className="inline-flex items-center px-6 py-3 border border-gray-600 text-base font-medium rounded-md shadow-sm text-white bg-gray-700 hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-          >
-            Read Documentation
-          </Link>
+      <SignedIn>
+        {/* Hero Section */}
+        <div className="text-center mb-16">
+          <h1 className="text-4xl md:text-5xl font-extrabold text-white mb-6">
+            Inventory <span className="text-indigo-400">Restock Predictor</span>
+          </h1>
+          <p className="text-xl text-gray-300 max-w-3xl mx-auto mb-10">
+            Predict when your inventory will run out and automate restocking with our intelligent forecasting system.
+          </p>
+          <div className="flex flex-col sm:flex-row justify-center gap-4">
+            <Link 
+              href="/dashboard" 
+              className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            >
+              View Dashboard
+            </Link>
+            <Link 
+              href="/documentation" 
+              className="inline-flex items-center px-6 py-3 border border-gray-600 text-base font-medium rounded-md shadow-sm text-white bg-gray-700 hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            >
+              Read Documentation
+            </Link>
+          </div>
         </div>
-      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-16">
         {/* Input Form */}
@@ -478,6 +480,19 @@ API_TOKEN=your-api-token`}</code>
           </div>
         </div>
       </div>
+      </SignedIn>
+      <SignedOut>
+        <div className="text-center py-12">
+          <h2 className="text-2xl font-bold text-white mb-4">Welcome to Inventory Restock Predictor</h2>
+          <p className="text-gray-300 mb-6">Please sign in to access the inventory prediction features.</p>
+          <Link 
+            href="/dashboard" 
+            className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+          >
+            Sign In to Continue
+          </Link>
+        </div>
+      </SignedOut>
     </div>
   );
 }

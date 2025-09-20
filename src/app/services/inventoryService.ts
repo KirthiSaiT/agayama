@@ -34,9 +34,16 @@ export interface Supplier {
   contactInfo: string;
 }
 
+export interface RestockAlert {
+  product_name: string;
+  stock_out_date: string;
+  current_stock: number;
+  suggested_restock: number;
+}
+
 export class InventoryService {
   // Base URL for your model API
-  private API_BASE_URL = process.env.MODEL_API_URL || 'http://localhost:8000/api';
+  private API_BASE_URL = process.env.MODEL_API_URL || 'http://localhost:5000/api';
   
   // In a real implementation, this would connect to a database
   private inventoryItems: InventoryItem[] = [];
@@ -45,12 +52,10 @@ export class InventoryService {
   async getInventoryItems(): Promise<InventoryItem[]> {
     try {
       // Call your actual model API
-      const response = await fetch(`${this.API_BASE_URL}/inventory/items`, {
+      const response = await fetch(`${this.API_BASE_URL}/inventory`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          // Add authentication headers if needed
-          // 'Authorization': `Bearer ${process.env.API_TOKEN}`
         }
       });
       
@@ -59,7 +64,7 @@ export class InventoryService {
       }
       
       const data = await response.json();
-      return data;
+      return data.products;
     } catch (error) {
       console.error("Error fetching inventory items:", error);
       // Fallback to local data if API is unavailable
@@ -244,6 +249,60 @@ export class InventoryService {
     }
   }
 
+  // New method to upload CSV files and trigger prediction
+  async uploadInventoryData(historicalData: File, currentInventory: File): Promise<{alerts: RestockAlert[], message: string}> {
+    try {
+      const formData = new FormData();
+      formData.append('historical_data', historicalData);
+      formData.append('stock_data', currentInventory);
+      
+      const response = await fetch(`${this.API_BASE_URL}/predict`, {
+        method: 'POST',
+        body: formData,
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Failed to upload data: ${response.statusText}`);
+      }
+      
+      const result = await response.json();
+      return result;
+    } catch (error) {
+      console.error("Error uploading inventory data:", error);
+      // Check if it's a connection error
+      if (error instanceof TypeError && error.message === 'Failed to fetch') {
+        throw new Error('Failed to connect to the prediction service. Please make sure the backend server is running.');
+      }
+      throw new Error(`Failed to upload inventory data: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  // New method to get restock alerts
+  async getRestockAlerts(): Promise<RestockAlert[]> {
+    try {
+      const response = await fetch(`${this.API_BASE_URL}/alerts`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Failed to fetch alerts: ${response.statusText}`);
+      }
+      
+      const data = await response.json();
+      return data.alerts || [];
+    } catch (error) {
+      console.error("Error fetching restock alerts:", error);
+      // Check if it's a connection error
+      if (error instanceof TypeError && error.message === 'Failed to fetch') {
+        throw new Error('Failed to connect to the prediction service. Please make sure the backend server is running.');
+      }
+      return [];
+    }
+  }
+
   async getSupplier(id: number): Promise<Supplier | null> {
     try {
       const response = await fetch(`${this.API_BASE_URL}/suppliers/${id}`, {
@@ -288,101 +347,6 @@ export class InventoryService {
       console.error("Error fetching suppliers:", error);
       // Fallback to local data if API is unavailable
       return this.suppliers;
-    }
-  }
-
-  // New method to process uploaded historical data
-  async processHistoricalData(historicalData: any[]): Promise<boolean> {
-    try {
-      // In a real implementation, this would send the data to your model API
-      console.log('Processing historical data:', historicalData.length, 'records');
-      
-      // TODO: Replace with actual API call to your model
-      /*
-      const response = await fetch(`${this.API_BASE_URL}/data/historical`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ data: historicalData })
-      });
-      
-      if (!response.ok) {
-        throw new Error(`Failed to process historical data: ${response.statusText}`);
-      }
-      
-      return true;
-      */
-      
-      // Simulate processing
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      return true;
-    } catch (error) {
-      console.error("Error processing historical data:", error);
-      return false;
-    }
-  }
-
-  // New method to process uploaded current inventory data
-  async processCurrentInventory(currentData: any[]): Promise<boolean> {
-    try {
-      // In a real implementation, this would send the data to your model API
-      console.log('Processing current inventory data:', currentData.length, 'records');
-      
-      // TODO: Replace with actual API call to your model
-      /*
-      const response = await fetch(`${this.API_BASE_URL}/data/current`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ data: currentData })
-      });
-      
-      if (!response.ok) {
-        throw new Error(`Failed to process current inventory data: ${response.statusText}`);
-      }
-      
-      return true;
-      */
-      
-      // Simulate processing
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      return true;
-    } catch (error) {
-      console.error("Error processing current inventory data:", error);
-      return false;
-    }
-  }
-
-  // New method to trigger predictions after data upload
-  async generatePredictions(): Promise<boolean> {
-    try {
-      // In a real implementation, this would trigger your model to generate predictions
-      console.log('Generating predictions...');
-      
-      // TODO: Replace with actual API call to your model
-      /*
-      const response = await fetch(`${this.API_BASE_URL}/predict/generate`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        }
-      });
-      
-      if (!response.ok) {
-        throw new Error(`Failed to generate predictions: ${response.statusText}`);
-      }
-      
-      return true;
-      */
-      
-      // Simulate processing
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      return true;
-    } catch (error) {
-      console.error("Error generating predictions:", error);
-      return false;
     }
   }
 

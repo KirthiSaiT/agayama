@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { SignInButton, SignUpButton, SignedIn, SignedOut, UserButton } from '@clerk/nextjs';
 
 export default function Navigation() {
   const pathname = usePathname();
@@ -40,6 +41,25 @@ export default function Navigation() {
                 </Link>
               ))}
             </div>
+          </div>
+          <div className="flex items-center">
+            <SignedOut>
+              <div className="flex space-x-4">
+                <SignInButton>
+                  <button className="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium">
+                    Sign In
+                  </button>
+                </SignInButton>
+                <SignUpButton>
+                  <button className="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded-md text-sm font-medium">
+                    Sign Up
+                  </button>
+                </SignUpButton>
+              </div>
+            </SignedOut>
+            <SignedIn>
+              <UserButton />
+            </SignedIn>
           </div>
         </div>
       </div>
